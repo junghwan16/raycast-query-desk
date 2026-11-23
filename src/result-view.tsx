@@ -9,12 +9,14 @@ import {
   Toast,
   useNavigation,
 } from "@raycast/api";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { QueryResult } from "./model";
 import {
+  columnPages,
+  compactRow,
   fencedText,
-  fixedWidthTable,
   markdownTable,
+  previewTable,
   rowOrder,
   slackClipboard,
   type Sort,
@@ -68,11 +70,85 @@ function SortPicker({
   );
 }
 
-function rowLabel(row: QueryResult["rows"][number]) {
+function ColumnPicker({
+  result,
+  onSelect,
+}: {
+  result: QueryResult;
+  onSelect: (column: number) => void;
+}) {
+  const { pop } = useNavigation();
   return (
-    row
-      .map((value) => (value ?? "NULL").replace(/\s+/g, " ").slice(0, 80))
-      .join("  │  ") || "(empty row)"
+    <List navigationTitle="Go to Column" searchBarPlaceholder="Find a column…">
+      {result.columns.map(({ name }, column) => (
+        <List.Item
+          key={column}
+          title={name || "(unnamed)"}
+          subtitle={`Column ${column + 1}`}
+          actions={
+            <ActionPanel>
+              <Action
+                title="Show Column"
+                onAction={() => {
+                  onSelect(column);
+                  pop();
+                }}
+              />
+            </ActionPanel>
+          }
+        />
+      ))}
+    </List>
+  );
+}
+
+function RowInspector({
+  result,
+  row,
+  position,
+}: {
+  result: QueryResult;
+  row: number;
+  position: number;
+}) {
+  return (
+    <List
+      navigationTitle={`Row ${position + 1}`}
+      searchBarPlaceholder="Find a field…"
+      isShowingDetail
+    >
+      {result.columns.map(({ name }, index) => {
+        const value = result.rows[row][index];
+        const title = name || `Column ${index + 1}`;
+        return (
+          <List.Item
+            key={index}
+            title={title}
+            subtitle={value === null ? "NULL" : undefined}
+            detail={
+              <List.Item.Detail
+                markdown={
+                  value === null
+                    ? "`NULL`"
+                    : value === ""
+                      ? "*Empty string*"
+                      : fencedText(value)
+                }
+              />
+            }
+            actions={
+              <ActionPanel>
+                <Action.CopyToClipboard
+                  title="Copy Full Value"
+                  content={value ?? "NULL"}
+                  concealed
+                />
+              </ActionPanel>
+            }
+          />
+        );
+      })}
+    </List>
   );
 }
 
@@ -148,7 +224,10 @@ function RowPicker({ result, order, initial, onChange }: SelectionProps) {
         {order.map((index, position) => (
           <List.Item
             key={index}
-            title={rowLabel(result.rows[index])}
+            title={compactRow(result.rows[index])}
+            keywords={result.rows[index].flatMap((value) =>
+              value === null ? ["NULL"] : [value.slice(0, 512)],
+            )}
             icon={selected.has(index) ? Icon.CheckCircle : Icon.Circle}
             accessories={[{ text: String(position + 1) }]}
             actions={
@@ -156,6 +235,17 @@ function RowPicker({ result, order, initial, onChange }: SelectionProps) {
                 <Action
                   title={selected.has(index) ? "Deselect Row" : "Select Row"}
                   onAction={() => toggle(index)}
+                />
+                <Action.Push
+                  title="Inspect Row"
+                  icon={Icon.Sidebar}
+                  target={
+                    <RowInspector
+                      result={result}
+                      row={index}
+                      position={position}
+                    />
+                  }
                 />
                 <Action
                   title="Back to Result Table"
@@ -188,29 +278,45 @@ export function ResultView({
   title: string;
 }) {
   const [sort, setSort] = useState<Sort>();
+  const [pageIndex, setPageIndex] = useState(0);
   const [selected, setSelected] = useState<ReadonlySet<number>>(
     () => new Set(),
   );
   const { pop, push } = useNavigation();
   const order = rowOrder(result, sort);
+  const pages = useMemo(() => columnPages(result), [result]);
+  const page = pages[pageIndex];
   const heading = `${order.length} ${order.length === 1 ? "row" : "rows"}${result.truncated ? " shown · more rows available" : ""} · ${selected.size} selected`;
-  const content = result.columns.length
-    ? fencedText(
-        fixedWidthTable(
-          result.columns,
-          order.map((index) => result.rows[index]),
-          32,
-        ),
-      )
-    : "No result columns.";
+  const range =
+    page && pages.length > 1
+      ? `Columns ${page.start + 1}–${page.end} of ${result.columns.length}`
+      : undefined;
   const orderLabel = sort
-    ? `Current order: column ${sort.column + 1} · ${sort.direction === "asc" ? "ascending" : "descending"}`
-    : "Current order: query order";
+    ? `Sorted by ${(result.columns[sort.column].name || `column ${sort.column + 1}`).replace(/[\\`*_~<>\[\]!&]/g, "\\$&")} ${sort.direction === "asc" ? "↑" : "↓"}`
+    : undefined;
+  const labels = [range, orderLabel].filter(Boolean).join(" · ");
+  const content = page
+    ? fencedText(previewTable(result, page, order, selected))
+    : "No result columns.";
+
+  function showColumn(column: number) {
+    const index = pages.findIndex(
+      ({ start, end }) => start <= column && column < end,
+    );
+    if (index >= 0) setPageIndex(index);
+  }
+
+  function changeSort(next?: Sort) {
+    setSort(next);
+    if (next) showColumn(next.column);
+  }
 
   return (
     <Detail
       navigationTitle={title}
-      markdown={`### ${heading}\n\n${orderLabel}\n\n${content}`}
+      markdown={[`### ${heading}`, labels, content]
+        .filter(Boolean)
+        .join("\n\n")}
       actions={
         <ActionPanel>
           {!!order.length && (
@@ -234,7 +340,7 @@ export function ResultView({
                 icon={Icon.ArrowUp}
                 shortcut={{ modifiers: ["cmd"], key: "s" }}
                 onAction={() =>
-                  push(<SortPicker result={result} onSort={setSort} />)
+                  push(<SortPicker result={result} onSort={changeSort} />)
                 }
               />
               <Action
@@ -247,6 +353,33 @@ export function ResultView({
                   onAction={() => setSelected(new Set())}
                 />
               )}
+            </ActionPanel.Section>
+          )}
+          {pages.length > 1 && (
+            <ActionPanel.Section title="Columns">
+              {pageIndex < pages.length - 1 && (
+                <Action
+                  title="Next Columns"
+                  icon={Icon.ArrowRight}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "arrowRight" }}
+                  onAction={() => setPageIndex(pageIndex + 1)}
+                />
+              )}
+              {pageIndex > 0 && (
+                <Action
+                  title="Previous Columns"
+                  icon={Icon.ArrowLeft}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "arrowLeft" }}
+                  onAction={() => setPageIndex(pageIndex - 1)}
+                />
+              )}
+              <Action
+                title="Go to Column"
+                shortcut={{ modifiers: ["cmd"], key: "g" }}
+                onAction={() =>
+                  push(<ColumnPicker result={result} onSelect={showColumn} />)
+                }
+              />
             </ActionPanel.Section>
           )}
           {copyActions(result, order, selected)}

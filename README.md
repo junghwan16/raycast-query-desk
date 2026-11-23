@@ -24,7 +24,8 @@ Search for **Omok** in Raycast. **Add Connection** opens the setup form. Use the
 
 1. Choose a connection and enter a single `SELECT` or a `WITH … SELECT`. Press **⌘↵** to run. The SQL editor also exposes **Run Query** through the action menu.
 2. Choose **Sort by Column** to sort the returned rows. Sort the full dataset in SQL with `ORDER BY` before limiting rows.
-3. Choose **Select Rows**, press Enter on the rows you want, then use **Copy Selected Rows for Slack** or **Copy Selected Rows as Markdown**. Paste the Slack version into a code block if your composer does not apply pasted backtick markup. The copied text preserves the selected rows in their on-screen order.
+3. On wide results, use **Next Columns** / **Previous Columns** (⌘⇧→ / ⌘⇧←) or **Go to Column** (⌘G). Row numbers stay visible as you browse. An ellipsis marks a shortened preview.
+4. Choose **Select Rows**, press Enter on the rows you want, then use **Copy Selected Rows for Slack** or **Copy Selected Rows as Markdown**. Paste the Slack version into a code block if your composer does not apply pasted backtick markup. Use **Inspect Row** to read or copy a full field. Copying selected rows preserves all fields and the on-screen row order.
 
 Use **Saved Queries** for named queries and **Recent Runs** to find the last 50 executions. Drafts are kept per connection. The connection, draft, query history, and saved SQL are stored with Raycast LocalStorage. Results are kept in memory until you leave the result view, or in the system clipboard after you copy them. Athena also retains results as configured by AWS.
 

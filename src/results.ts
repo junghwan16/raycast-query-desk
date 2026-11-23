@@ -56,11 +56,12 @@ export function markdownTable(columns: Column[], rows: Cell[][]) {
   ].join("\n");
 }
 
+const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
 function clip(value: string, width: number) {
   if (stringWidth(value) <= width) return value;
   let result = "";
   let used = 0;
-  const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
   for (const { segment } of segmenter.segment(value)) {
     used += stringWidth(segment);
     if (used >= width) break;
@@ -69,26 +70,14 @@ function clip(value: string, width: number) {
   return result + "…";
 }
 
-export function fixedWidthTable(
-  columns: Column[],
-  rows: Cell[][],
-  maxWidth?: number,
-) {
-  const plain = [columns.map(({ name }) => name), ...rows].map((row) =>
-    row.map(singleLine),
-  );
-  const table = maxWidth
-    ? plain.map((row) => row.map((cell) => clip(cell, maxWidth)))
-    : plain;
-  const widths = columns.map((_, index) =>
-    Math.max(...table.map((row) => stringWidth(row[index]))),
-  );
+function renderTable(columns: Column[], table: string[][], widths: number[]) {
   const border = widths.map((width) => "─".repeat(width)).join("─┼─");
-  const lines = table.map((row) =>
+  const lines = table.map((row, rowIndex) =>
     row
-      .map((cell, index) => {
+      .map((value, index) => {
+        const cell = clip(value, widths[index]);
         const padding = " ".repeat(widths[index] - stringWidth(cell));
-        return columns[index].kind === "number"
+        return rowIndex > 0 && columns[index].kind === "number"
           ? padding + cell
           : cell + padding;
       })
@@ -98,11 +87,86 @@ export function fixedWidthTable(
   return [lines[0], border, ...lines.slice(1)].join("\n");
 }
 
-export function fencedText(body: string) {
-  const maxBackticks = Math.max(
-    2,
-    ...(body.match(/`+/g) ?? []).map(({ length }) => length),
+export function fixedWidthTable(columns: Column[], rows: Cell[][]) {
+  const table = [columns.map(({ name }) => name), ...rows].map((row) =>
+    row.map(singleLine),
   );
+  const widths = columns.map((_, index) =>
+    Math.max(...table.map((row) => stringWidth(row[index]))),
+  );
+  return renderTable(columns, table, widths);
+}
+
+const TABLE_WIDTH = 64;
+const ROW_NUMBER_WIDTH = 5;
+const SEPARATOR_WIDTH = 3;
+const MAX_INITIAL_COLUMN_WIDTH = 20;
+
+type ColumnPage = { start: number; end: number; widths: number[] };
+
+export function columnPages(result: QueryResult) {
+  const widths = result.columns.map(({ name }, index) =>
+    Math.max(
+      1,
+      stringWidth(singleLine(name)),
+      ...result.rows.map((row) => stringWidth(singleLine(row[index]))),
+    ),
+  );
+  const pages: ColumnPage[] = [];
+  let start = 0;
+  while (start < widths.length) {
+    let used = ROW_NUMBER_WIDTH;
+    let end = start;
+    const visibleWidths: number[] = [];
+    for (; end < widths.length; end++) {
+      const width = Math.min(widths[end], MAX_INITIAL_COLUMN_WIDTH);
+      if (used + SEPARATOR_WIDTH + width > TABLE_WIDTH) break;
+      used += SEPARATOR_WIDTH + width;
+      visibleWidths.push(width);
+    }
+    for (let i = 0; i < visibleWidths.length && used < TABLE_WIDTH; i++) {
+      const extra = Math.min(
+        widths[start + i] - visibleWidths[i],
+        TABLE_WIDTH - used,
+      );
+      visibleWidths[i] += extra;
+      used += extra;
+    }
+    pages.push({ start, end, widths: visibleWidths });
+    start = end;
+  }
+  return pages;
+}
+
+export function previewTable(
+  result: QueryResult,
+  page: ColumnPage,
+  order: number[],
+  selected: ReadonlySet<number>,
+) {
+  const columns: Column[] = [
+    { name: "Row", kind: "text" },
+    ...result.columns.slice(page.start, page.end),
+  ];
+  const table = [
+    columns.map(({ name }) => singleLine(name)),
+    ...order.map((row, position) => [
+      (selected.has(row) ? "✓ " : "  ") + String(position + 1),
+      ...result.rows[row].slice(page.start, page.end).map(singleLine),
+    ]),
+  ];
+  return renderTable(columns, table, [ROW_NUMBER_WIDTH, ...page.widths]);
+}
+
+export function compactRow(row: Cell[]) {
+  return clip(row.map(singleLine).join("  ·  "), 64) || "(empty row)";
+}
+
+export function fencedText(body: string) {
+  let maxBackticks = 2;
+  for (const { 0: group } of body.matchAll(/`+/g)) {
+    maxBackticks = Math.max(maxBackticks, group.length);
+  }
   const fence = "`".repeat(maxBackticks + 1);
   return [fence, body, fence].join("\n");
 }
