@@ -7,3 +7,5 @@ dist/
 *.pem
 
 raycast-env.d.ts
+assets/Omok Results.app/
+assets/omok-table.html

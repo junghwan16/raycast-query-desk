@@ -2,11 +2,11 @@
 
 # Omok
 
-Run read-only MySQL and Amazon Athena queries from Raycast. Choose a connection, write SQL, sort up to 100 returned rows, and copy the rows you need as a Markdown table or a fixed-width table for Slack.
+Run read-only MySQL and Amazon Athena queries from Raycast. Write SQL in Raycast, then sort, filter, and copy up to 100 returned rows in a macOS result window.
 
 ## Install from source
 
-You need macOS, [Raycast](https://www.raycast.com/), and Node.js 22.22.2 or later.
+You need macOS, [Raycast](https://www.raycast.com/), Node.js 22.22.2 or later, and Xcode Command Line Tools (`xcode-select --install`). The build compiles the bundled macOS result viewer on your Mac.
 
 ```sh
 git clone https://github.com/junghwan16/raycast-query-desk.git
@@ -23,9 +23,9 @@ Search for **Omok** in Raycast. **Add Connection** opens the setup form. Use the
 ## Query and copy
 
 1. Choose a connection and enter a single `SELECT` or a `WITH … SELECT`. Press **⌘↵** to run. The SQL editor also exposes **Run Query** through the action menu.
-2. Choose **Sort by Column** to sort the returned rows. Sort the full dataset in SQL with `ORDER BY` before limiting rows.
-3. On wide results, use **Next Columns** / **Previous Columns** (⌘⇧→ / ⌘⇧←) or **Go to Column** (⌘G). Row numbers stay visible as you browse. An ellipsis marks a shortened preview.
-4. Choose **Select Rows**, press Enter on the rows you want, then use **Copy Selected Rows for Slack** or **Copy Selected Rows as Markdown**. Paste the Slack version into a code block if your composer does not apply pasted backtick markup. Use **Inspect Row** to read or copy a full field. Copying selected rows preserves all fields and the on-screen row order.
+2. The result opens in an Omok window. Click a column header to sort, drag its right edge to resize, or press **⌘F** to filter the returned rows. Click a cell to inspect its full value.
+3. Check the rows you want, then choose **Copy for Slack** or **Markdown**. The copy preserves all columns and the current row order. Use `ORDER BY` in SQL when you need to sort the full dataset before limiting rows.
+4. To reopen the table, choose **Open Result Window** in the Raycast result preview. The macOS window receives results locally in memory and makes no network requests.
 
 Use **Saved Queries** for named queries and **Recent Runs** to find the last 50 executions. Drafts are kept per connection. The connection, draft, query history, and saved SQL are stored with Raycast LocalStorage. Results are kept in memory until you leave the result view, or in the system clipboard after you copy them. Athena also retains results as configured by AWS.
 

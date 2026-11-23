@@ -10,6 +10,7 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useMemo, useState } from "react";
+import { openResultWindow } from "./native-viewer";
 import type { QueryResult } from "./model";
 import {
   columnPages,
@@ -319,6 +320,11 @@ export function ResultView({
         .join("\n\n")}
       actions={
         <ActionPanel>
+          <Action
+            title="Open Result Window"
+            icon={Icon.AppWindow}
+            onAction={() => openResultWindow(result, title)}
+          />
           {!!order.length && (
             <ActionPanel.Section>
               <Action

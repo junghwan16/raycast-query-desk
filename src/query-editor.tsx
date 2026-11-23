@@ -16,6 +16,7 @@ import {
   type Run,
   type SavedQuery,
 } from "./model";
+import { openResultWindow } from "./native-viewer";
 import { runQuery } from "./query";
 import { ResultView } from "./result-view";
 import { storageError, update, useStore } from "./store";
@@ -128,6 +129,7 @@ export function QueryEditor({ connection, initial, saved }: Props) {
       const result = await runningQuery;
       if (!controller.signal.aborted)
         push(<ResultView result={result} title={connection.name} />);
+      void openResultWindow(result, connection.name);
     } catch (failure) {
       if (!controller.signal.aborted) {
         setError(
