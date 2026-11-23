@@ -2,7 +2,7 @@
 
 # Omok
 
-Run read-only MySQL and Amazon Athena queries from Raycast. Write SQL in Raycast, then sort, filter, and copy up to 100 returned rows in a macOS result window.
+Run read-only MySQL and Amazon Athena queries from Raycast. Write SQL in Raycast, then inspect, sort, and copy up to 100 returned rows without leaving Raycast.
 
 ## Install from source
 
@@ -23,9 +23,9 @@ Search for **Omok** in Raycast. **Add Connection** opens the setup form. Use the
 ## Query and copy
 
 1. Choose a connection and enter a single `SELECT` or a `WITH … SELECT`. Press **⌘↵** to run. The SQL editor also exposes **Run Query** through the action menu.
-2. The result opens in an Omok window. Click a column header to sort, drag its right edge to resize, or press **⌘F** to filter the returned rows. Click a cell to inspect its full value.
-3. Check the rows you want, then choose **Copy for Slack** or **Markdown**. The copy preserves all columns and the current row order. Use `ORDER BY` in SQL when you need to sort the full dataset before limiting rows.
-4. To reopen the table, choose **Open Result Window** in the Raycast result preview. The macOS window receives results locally in memory and makes no network requests.
+2. The result appears inside Raycast. Use **Sort by Column**, **Next Columns**, or **Go to Column** to explore the table. Use `ORDER BY` in SQL when you need to sort the full dataset before limiting rows.
+3. Choose **Browse Rows** to move through rows with a field preview. Select the rows you want and copy them as Markdown or fixed-width text for Slack. **Inspect Row** opens the full value of a field.
+4. Choose **Open Table in Separate Window** from the result action menu when you need a resizable grid. Click column headers to sort, press **⌘F** to filter, and click a cell to inspect it. This window receives results locally in memory.
 
 Use **Saved Queries** for named queries and **Recent Runs** to find the last 50 executions. Drafts are kept per connection. The connection, draft, query history, and saved SQL are stored with Raycast LocalStorage. Results are kept in memory until you leave the result view, or in the system clipboard after you copy them. Athena also retains results as configured by AWS.
 

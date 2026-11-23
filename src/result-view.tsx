@@ -218,8 +218,9 @@ function RowPicker({ result, order, initial, onChange }: SelectionProps) {
 
   return (
     <List
-      navigationTitle="Select Rows"
+      navigationTitle="Browse Rows"
       searchBarPlaceholder="Find rows by value…"
+      isShowingDetail
     >
       <List.Section title={`${selected.size} of ${order.length} selected`}>
         {order.map((index, position) => (
@@ -230,7 +231,35 @@ function RowPicker({ result, order, initial, onChange }: SelectionProps) {
               value === null ? ["NULL"] : [value.slice(0, 512)],
             )}
             icon={selected.has(index) ? Icon.CheckCircle : Icon.Circle}
-            accessories={[{ text: String(position + 1) }]}
+            subtitle={`Row ${position + 1}`}
+            detail={
+              <List.Item.Detail
+                metadata={
+                  <List.Item.Detail.Metadata>
+                    {result.columns.map(({ name }, column) => {
+                      const value = result.rows[index][column];
+                      const display =
+                        value === null
+                          ? "NULL"
+                          : value === ""
+                            ? "(empty string)"
+                            : value.replace(/\r?\n/g, " ↵ ");
+                      return (
+                        <List.Item.Detail.Metadata.Label
+                          key={column}
+                          title={name || `Column ${column + 1}`}
+                          text={
+                            display.length > 160
+                              ? display.slice(0, 159) + "…"
+                              : display
+                          }
+                        />
+                      );
+                    })}
+                  </List.Item.Detail.Metadata>
+                }
+              />
+            }
             actions={
               <ActionPanel>
                 <Action
@@ -320,15 +349,10 @@ export function ResultView({
         .join("\n\n")}
       actions={
         <ActionPanel>
-          <Action
-            title="Open Result Window"
-            icon={Icon.AppWindow}
-            onAction={() => openResultWindow(result, title)}
-          />
           {!!order.length && (
             <ActionPanel.Section>
               <Action
-                title="Select Rows"
+                title="Browse Rows"
                 icon={Icon.CheckList}
                 onAction={() =>
                   push(
@@ -390,6 +414,11 @@ export function ResultView({
           )}
           {copyActions(result, order, selected)}
           <Action title="Edit SQL" icon={Icon.Pencil} onAction={pop} />
+          <Action
+            title="Open Table in Separate Window"
+            icon={Icon.AppWindow}
+            onAction={() => openResultWindow(result, title)}
+          />
         </ActionPanel>
       }
     />
