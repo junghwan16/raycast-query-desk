@@ -1,6 +1,6 @@
-<img src="assets/enaga.png" alt="Enaga’s white long-tailed tit mascot" width="96" height="96">
+<img src="assets/omok.png" alt="Omok’s white long-tailed tit mascot" width="96" height="96">
 
-# Enaga
+# Omok
 
 Run read-only MySQL and Amazon Athena queries from Raycast. Choose a connection, write SQL, sort up to 100 returned rows, and copy the rows you need as a Markdown table or a fixed-width table for Slack.
 
@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Search for **Enaga** in Raycast. **Add Connection** opens the setup form. Use the action menu to edit or delete a connection.
+Search for **Omok** in Raycast. **Add Connection** opens the setup form. Use the action menu to edit or delete a connection.
 
 - **MySQL:** Set the host, port, database, user, and password. Use a MySQL 8 account with `SELECT` privileges scoped to the database you need. Choose system or custom CA verification for TLS, or choose **Off for Loopback** for a server or externally managed tunnel on your Mac. The extension does not start tunnels. For a connection check, run `SELECT 1 AS ready`.
 - **Athena:** Set the AWS CLI profile, region, workgroup, catalog, and database. An SSO profile needs an active AWS CLI session. Set an S3 output location if the workgroup does not set one or use managed query results. The profile needs permission to run and stop queries in that workgroup and fetch results. Athena charges and result retention follow your AWS configuration. Start with `SELECT 1 AS ready`.

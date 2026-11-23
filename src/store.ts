@@ -34,7 +34,7 @@ function load() {
       loaded = true;
     })
     .catch(() => {
-      loadError = "Enaga could not read its local data.";
+      loadError = "Omok could not read its local data.";
     })
     .finally(publish));
 }
@@ -64,6 +64,6 @@ export function update(change: (previous: State) => State) {
 export function storageError() {
   return showToast({
     style: Toast.Style.Failure,
-    title: "Couldn't save Enaga data",
+    title: "Couldn't save Omok data",
   });
 }
