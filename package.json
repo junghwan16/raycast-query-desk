@@ -1,9 +1,9 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "raycast-query-desk",
-  "title": "Query Desk",
+  "title": "Enaga",
   "description": "Run read-only MySQL and Athena queries and copy selected result rows.",
-  "icon": "query-desk.png",
+  "icon": "enaga.png",
   "author": "junghwan16",
   "categories": [
     "Developer Tools"
@@ -15,7 +15,7 @@
   "commands": [
     {
       "name": "query-desk",
-      "title": "Query Desk",
+      "title": "Enaga",
       "subtitle": "MySQL and Athena",
       "description": "Choose a database, write SQL, and copy query results.",
       "mode": "view"
@@ -43,5 +43,5 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
-  "version": "0.1.0"
+  "version": "0.1.1"
 }
