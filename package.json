@@ -1,0 +1,47 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "raycast-query-desk",
+  "title": "Query Desk",
+  "description": "Run read-only MySQL and Athena queries and copy selected result rows.",
+  "icon": "query-desk.png",
+  "author": "junghwan16",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "commands": [
+    {
+      "name": "query-desk",
+      "title": "Query Desk",
+      "subtitle": "MySQL and Athena",
+      "description": "Choose a database, write SQL, and copy query results.",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "format:check": "prettier --check src test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-athena": "^3.1169.0",
+    "@aws-sdk/credential-providers": "^3.1169.0",
+    "@raycast/api": "^2.12.1",
+    "decimal.js": "^10.6.0",
+    "mysql2": "^3.24.6",
+    "string-width": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  },
+  "version": "0.1.0"
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.raycast/
+.DS_Store
+.env
+.env.*
+*.pem
+
+raycast-env.d.ts
